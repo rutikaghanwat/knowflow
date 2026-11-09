@@ -1,10 +1,11 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { UserProfile, TeamMember, Handover } from '../types';
-import { mockTeamMembers, mockHandovers } from '../data/mockData';
+import React, { createContext, useContext, useState } from 'react';
+import { UserProfile, Handover, UserRolePerspective } from '../types';
+import { mockHandovers } from '../data/mockData';
+import { AuthService, RegisterPayload } from '../services/authService';
 
-export type UserRolePerspective = 'manager' | 'departing' | 'incoming' | 'member';
+export type { UserRolePerspective };
 
-interface AuthUser extends UserProfile {
+export interface AuthUser extends UserProfile {
   id: string;
   perspective: UserRolePerspective;
   activeProjectName: string;
@@ -13,11 +14,14 @@ interface AuthUser extends UserProfile {
 
 interface AuthContextType {
   currentUser: AuthUser;
-  login: (email: string, password?: string) => { success: boolean; redirectPath: string };
+  login: (email: string, password?: string) => Promise<{ success: boolean; redirectPath: string }>;
+  register: (payload: RegisterPayload) => Promise<{ success: boolean; requiresEmailVerification: boolean; redirectPath: string }>;
   logout: () => void;
   switchUser: (userId: string) => void;
-  acceptInvitation: (token: string, password: string, name?: string) => string;
+  acceptInvitation: (token: string, password: string) => Promise<string>;
   activeHandover?: Handover;
+  returnUrl?: string;
+  setReturnUrl: (url?: string) => void;
 }
 
 const defaultManager: AuthUser = {
@@ -38,7 +42,7 @@ const defaultManager: AuthUser = {
 const defaultDeparting: AuthUser = {
   id: 'usr-2',
   name: 'Rutika Ghanwat',
-  email: 'rutika.ghanwat@knowflow.io',
+  email: 'rutika.g@knowflow.io',
   role: 'Backend Developer',
   organization: 'Acme Technologies Inc.',
   avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
@@ -75,31 +79,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return defaultManager;
   });
 
+  const [returnUrl, setReturnUrl] = useState<string | undefined>(undefined);
+
   const getRedirectPathForUser = (user: AuthUser): string => {
-    if (user.perspective === 'departing') {
-      return '/app/my-handover';
+    if (returnUrl) {
+      const dest = returnUrl;
+      setReturnUrl(undefined);
+      return dest;
     }
-    if (user.perspective === 'incoming') {
-      return '/app/my-report';
+    if (user.perspective === 'manager') {
+      return '/app/overview';
     }
-    return '/app/overview';
+    return '/employee/overview';
   };
 
-  const login = (email: string): { success: boolean; redirectPath: string } => {
-    const normalized = email.trim().toLowerCase();
-    let targetUser: AuthUser;
+  const login = async (email: string, password?: string): Promise<{ success: boolean; redirectPath: string }> => {
+    const result = await AuthService.login(email, password);
+    const mappedUser: AuthUser = {
+      ...result.user,
+      timezone: 'UTC+05:30 (IST)',
+      notificationsEnabled: true,
+      aiSensitivity: 'balanced',
+    };
+    setCurrentUser(mappedUser);
+    localStorage.setItem('knowflow_user_id', mappedUser.id);
+    return { success: true, redirectPath: getRedirectPathForUser(mappedUser) };
+  };
 
-    if (normalized.includes('rutika') || normalized.includes('departing')) {
-      targetUser = defaultDeparting;
-    } else if (normalized.includes('marcus') || normalized.includes('incoming')) {
-      targetUser = defaultIncoming;
-    } else {
-      targetUser = defaultManager;
-    }
-
-    setCurrentUser(targetUser);
-    localStorage.setItem('knowflow_user_id', targetUser.id);
-    return { success: true, redirectPath: getRedirectPathForUser(targetUser) };
+  const register = async (payload: RegisterPayload): Promise<{ success: boolean; requiresEmailVerification: boolean; redirectPath: string }> => {
+    const result = await AuthService.register(payload);
+    const mappedUser: AuthUser = {
+      ...result.user,
+      timezone: 'UTC+05:30 (IST)',
+      notificationsEnabled: true,
+      aiSensitivity: 'balanced',
+    };
+    setCurrentUser(mappedUser);
+    localStorage.setItem('knowflow_user_id', mappedUser.id);
+    return {
+      success: true,
+      requiresEmailVerification: result.requiresEmailVerification,
+      redirectPath: '/app/overview',
+    };
   };
 
   const logout = () => {
@@ -120,16 +141,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const acceptInvitation = (token: string, password: string, name?: string): string => {
-    // Simulated token: 'inv-rutika' -> departing, 'inv-marcus' -> incoming
-    if (token.includes('marcus')) {
-      setCurrentUser(defaultIncoming);
-      localStorage.setItem('knowflow_user_id', 'usr-3');
-      return '/app/my-report';
-    }
-    setCurrentUser(defaultDeparting);
-    localStorage.setItem('knowflow_user_id', 'usr-2');
-    return '/app/my-handover';
+  const acceptInvitation = async (token: string, password: string): Promise<string> => {
+    const res = await AuthService.acceptInvitation(token, password);
+    const mappedUser: AuthUser = {
+      ...res.user,
+      timezone: 'UTC+05:30 (IST)',
+      notificationsEnabled: true,
+      aiSensitivity: 'balanced',
+    };
+    setCurrentUser(mappedUser);
+    localStorage.setItem('knowflow_user_id', mappedUser.id);
+    return '/employee/overview';
   };
 
   const activeHandover = mockHandovers.find(h => h.id === currentUser.activeHandoverId) || mockHandovers[0];
@@ -139,10 +161,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         currentUser,
         login,
+        register,
         logout,
         switchUser,
         acceptInvitation,
         activeHandover,
+        returnUrl,
+        setReturnUrl,
       }}
     >
       {children}

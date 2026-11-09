@@ -551,6 +551,31 @@ export const HandoversPage: React.FC = () => {
             />
             {errors.summary && <p className="text-[11px] text-[#B54747] mt-1">{errors.summary}</p>}
           </div>
+
+          {/* Manager Authorization Toggles per Section H */}
+          <div className="pt-2 border-t border-[#E5EAE6] space-y-2.5 text-xs">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-[#8E9B96] block">
+              Authorization & Permissions
+            </span>
+            <label className="flex items-center justify-between p-2.5 rounded-xl bg-[#F5F7F6] border border-[#E5EAE6] cursor-pointer">
+              <span className="font-semibold text-[#142640]">
+                Allow {formData.departingMember} to upload sources (PDF/DOCX)
+              </span>
+              <input type="checkbox" defaultChecked className="rounded text-[#218653] focus:ring-[#218653]" />
+            </label>
+            <label className="flex items-center justify-between p-2.5 rounded-xl bg-[#F5F7F6] border border-[#E5EAE6] cursor-pointer">
+              <span className="font-semibold text-[#142640]">
+                Authorise GitHub repository ingestion sync
+              </span>
+              <input type="checkbox" defaultChecked className="rounded text-[#218653] focus:ring-[#218653]" />
+            </label>
+            <label className="flex items-center gap-2 pt-1 cursor-pointer">
+              <input type="checkbox" defaultChecked className="rounded text-[#218653] focus:ring-[#218653]" />
+              <span className="text-[#687570]">
+                Notify {formData.departingMember} and {formData.incomingMember} via automated email
+              </span>
+            </label>
+          </div>
         </form>
       </Modal>
     </div>

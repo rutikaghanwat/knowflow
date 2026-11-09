@@ -20,6 +20,8 @@ import {
   CheckCircle2,
   Lock,
   UserCheck,
+  Share2,
+  History,
 } from 'lucide-react';
 import { cn } from '../../utils';
 import { useAuth, UserRolePerspective } from '../../context/AuthContext';
@@ -121,11 +123,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             icon: ShieldCheck,
             badge: pendingApprovalsCount > 0 ? pendingApprovalsCount : undefined,
           },
+          { label: 'Sharing & Acknowledgements', to: '/app/sharing-acknowledgements', icon: Share2 },
         ],
       },
       {
         title: 'MANAGEMENT',
         items: [
+          { label: 'Audit History', to: '/app/audit', icon: History },
           { label: 'Settings', to: '/app/settings', icon: Settings },
         ],
       },

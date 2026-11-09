@@ -26,22 +26,30 @@ export const LoginPage: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) {
       setError('Please provide your work email address.');
       return;
     }
-    const result = login(email, password);
-    navigate(result.redirectPath);
+    try {
+      const result = await login(email, password);
+      navigate(result.redirectPath);
+    } catch (err: any) {
+      setError(err?.message || 'Login failed.');
+    }
   };
 
-  const handleQuickSignIn = (userId: string, roleEmail: string) => {
+  const handleQuickSignIn = async (userId: string, roleEmail: string) => {
     setEmail(roleEmail);
     setPassword('demopassword123');
     switchUser(userId);
-    const result = login(roleEmail);
-    navigate(result.redirectPath);
+    try {
+      const result = await login(roleEmail);
+      navigate(result.redirectPath);
+    } catch (err: any) {
+      setError(err?.message || 'Login failed.');
+    }
   };
 
   return (

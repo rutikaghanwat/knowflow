@@ -1,12 +1,13 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppLayout } from '../components/layout/AppLayout';
+import { EmployeeLayout } from '../components/layout/EmployeeLayout';
 import { useAuth, UserRolePerspective } from '../context/AuthContext';
 
 // Public & Auth Pages
 import { LandingPage } from '../pages/public/LandingPage';
 import { LoginPage } from '../pages/auth/LoginPage';
-import { SignupPage } from '../pages/auth/SignupPage';
+import { RegisterPage } from '../pages/auth/RegisterPage';
 import { ForgotPasswordPage } from '../pages/auth/ForgotPasswordPage';
 import { InviteAcceptPage } from '../pages/auth/InviteAcceptPage';
 
@@ -22,19 +23,25 @@ import { EvidencePage } from '../pages/app/EvidencePage';
 import { HandoversPage } from '../pages/HandoversPage';
 import { ReportsPage } from '../pages/ReportsPage';
 import { ApprovalsPage } from '../pages/ApprovalsPage';
+import { SharingAcknowledgementsPage } from '../pages/app/SharingAcknowledgementsPage';
+import { AuditHistoryPage } from '../pages/app/AuditHistoryPage';
 import { SettingsPage } from '../pages/SettingsPage';
+import { UnauthorizedPage } from '../pages/app/UnauthorizedPage';
 
-// Employee Pages (Departing & Incoming)
-import { MyHandoverPage } from '../pages/employee/MyHandoverPage';
+// Employee Portal Pages
+import { EmployeeOverviewPage } from '../pages/employee/EmployeeOverviewPage';
+import { EmployeeProjectsPage } from '../pages/employee/EmployeeProjectsPage';
 import { UploadSourcesPage } from '../pages/employee/UploadSourcesPage';
 import { MyFilesPage } from '../pages/employee/MyFilesPage';
 import { ReviewConfirmPage } from '../pages/employee/ReviewConfirmPage';
-import { IncomingOverviewPage } from '../pages/employee/IncomingOverviewPage';
 import { MyReportPage } from '../pages/employee/MyReportPage';
-import { PermittedEvidencePage } from '../pages/employee/PermittedEvidencePage';
 import { AcknowledgementPage } from '../pages/employee/AcknowledgementPage';
+import { EmployeeKnowledgeBasePage } from '../pages/employee/EmployeeKnowledgeBasePage';
+import { EmployeeReportsPage } from '../pages/employee/EmployeeReportsPage';
+import { EmployeeNotificationsPage } from '../pages/employee/EmployeeNotificationsPage';
+import { EmployeeProfilePage } from '../pages/employee/EmployeeProfilePage';
+import { PermittedEvidencePage } from '../pages/employee/PermittedEvidencePage';
 import { ProjectSummaryPage } from '../pages/employee/ProjectSummaryPage';
-import { UnauthorizedPage } from '../pages/app/UnauthorizedPage';
 
 // Role Guard Component
 const RoleGuard: React.FC<{
@@ -48,14 +55,11 @@ const RoleGuard: React.FC<{
   return <>{children}</>;
 };
 
-// Smart App Index Redirector based on active role
-const AppIndexRedirect: React.FC = () => {
+// Manager App Index Redirector
+const ManagerIndexRedirect: React.FC = () => {
   const { currentUser } = useAuth();
-  if (currentUser.perspective === 'departing') {
-    return <Navigate to="/app/my-handover" replace />;
-  }
-  if (currentUser.perspective === 'incoming') {
-    return <Navigate to="/app/my-report" replace />;
+  if (currentUser.perspective !== 'manager') {
+    return <Navigate to="/employee/overview" replace />;
   }
   return <Navigate to="/app/overview" replace />;
 };
@@ -68,13 +72,15 @@ export const AppRoutes: React.FC = () => {
 
       {/* 2. Authentication & Invitation Pages */}
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/signup" element={<SignupPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/signup" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/accept-invite/:token" element={<InviteAcceptPage />} />
       <Route path="/invite/:token" element={<InviteAcceptPage />} />
 
-      {/* 3. Authenticated Application Shell */}
+      {/* 3. Manager Authenticated Application Shell (/app/*) */}
       <Route path="/app" element={<AppLayout />}>
-        <Route index element={<AppIndexRedirect />} />
+        <Route index element={<ManagerIndexRedirect />} />
 
         {/* Manager-Protected Pages */}
         <Route
@@ -173,18 +179,46 @@ export const AppRoutes: React.FC = () => {
             </RoleGuard>
           }
         />
-
-        {/* Departing Employee Pages */}
         <Route
-          path="my-handover"
+          path="sharing-acknowledgements"
           element={
-            <RoleGuard allowedPerspectives={['departing', 'manager']}>
-              <MyHandoverPage />
+            <RoleGuard allowedPerspectives={['manager']}>
+              <SharingAcknowledgementsPage />
             </RoleGuard>
           }
         />
         <Route
-          path="upload-sources"
+          path="audit"
+          element={
+            <RoleGuard allowedPerspectives={['manager']}>
+              <AuditHistoryPage />
+            </RoleGuard>
+          }
+        />
+        <Route path="settings" element={<SettingsPage />} />
+        <Route path="unauthorized" element={<UnauthorizedPage />} />
+
+        {/* Backward-compatible redirects for legacy employee paths inside /app */}
+        <Route path="my-handover" element={<Navigate to="/employee/overview" replace />} />
+        <Route path="upload-sources" element={<Navigate to="/employee/handover/upload" replace />} />
+        <Route path="my-files" element={<Navigate to="/employee/handover/files" replace />} />
+        <Route path="review-confirm" element={<Navigate to="/employee/handover/review" replace />} />
+        <Route path="incoming-overview" element={<Navigate to="/employee/overview" replace />} />
+        <Route path="my-report" element={<Navigate to="/employee/report" replace />} />
+        <Route path="permitted-evidence" element={<Navigate to="/employee/knowledge-base" replace />} />
+        <Route path="acknowledgement" element={<Navigate to="/employee/report/acknowledge" replace />} />
+        <Route path="project-summary" element={<ProjectSummaryPage />} />
+      </Route>
+
+      {/* 4. Employee Authenticated Portal Shell (/employee/*) */}
+      <Route path="/employee" element={<EmployeeLayout />}>
+        <Route index element={<Navigate to="/employee/overview" replace />} />
+        <Route path="overview" element={<EmployeeOverviewPage />} />
+        <Route path="projects" element={<EmployeeProjectsPage />} />
+
+        {/* Departing Employee Routes */}
+        <Route
+          path="handover/upload"
           element={
             <RoleGuard allowedPerspectives={['departing', 'manager']}>
               <UploadSourcesPage />
@@ -192,7 +226,7 @@ export const AppRoutes: React.FC = () => {
           }
         />
         <Route
-          path="my-files"
+          path="handover/files"
           element={
             <RoleGuard allowedPerspectives={['departing', 'manager']}>
               <MyFilesPage />
@@ -200,7 +234,7 @@ export const AppRoutes: React.FC = () => {
           }
         />
         <Route
-          path="review-confirm"
+          path="handover/review"
           element={
             <RoleGuard allowedPerspectives={['departing', 'manager']}>
               <ReviewConfirmPage />
@@ -208,17 +242,9 @@ export const AppRoutes: React.FC = () => {
           }
         />
 
-        {/* Incoming Employee Pages */}
+        {/* Incoming Employee Routes */}
         <Route
-          path="incoming-overview"
-          element={
-            <RoleGuard allowedPerspectives={['incoming', 'manager']}>
-              <IncomingOverviewPage />
-            </RoleGuard>
-          }
-        />
-        <Route
-          path="my-report"
+          path="report"
           element={
             <RoleGuard allowedPerspectives={['incoming', 'manager']}>
               <MyReportPage />
@@ -226,15 +252,7 @@ export const AppRoutes: React.FC = () => {
           }
         />
         <Route
-          path="permitted-evidence"
-          element={
-            <RoleGuard allowedPerspectives={['incoming', 'manager']}>
-              <PermittedEvidencePage />
-            </RoleGuard>
-          }
-        />
-        <Route
-          path="acknowledgement"
+          path="report/acknowledge"
           element={
             <RoleGuard allowedPerspectives={['incoming', 'manager']}>
               <AcknowledgementPage />
@@ -242,13 +260,14 @@ export const AppRoutes: React.FC = () => {
           }
         />
 
-        {/* Shared Read-Only Pages */}
-        <Route path="project-summary" element={<ProjectSummaryPage />} />
-        <Route path="settings" element={<SettingsPage />} />
-        <Route path="unauthorized" element={<UnauthorizedPage />} />
+        {/* Shared Employee Resources */}
+        <Route path="knowledge-base" element={<EmployeeKnowledgeBasePage />} />
+        <Route path="reports" element={<EmployeeReportsPage />} />
+        <Route path="notifications" element={<EmployeeNotificationsPage />} />
+        <Route path="profile" element={<EmployeeProfilePage />} />
       </Route>
 
-      {/* 4. Fallback */}
+      {/* 5. Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

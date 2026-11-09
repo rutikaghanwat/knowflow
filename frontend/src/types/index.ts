@@ -2,6 +2,7 @@ export type HandoverStatus = 'draft' | 'in_review' | 'approved' | 'rejected' | '
 export type SourceType = 'pdf' | 'docx' | 'github';
 export type SourceStatus = 'processed' | 'indexing' | 'pending' | 'failed';
 export type EvidenceType = 'verified_fact' | 'ai_inference' | 'recommendation' | 'unknown_missing';
+export type UserRolePerspective = 'manager' | 'departing' | 'incoming' | 'member';
 
 export type HandoverRole =
   | 'Project Manager'
