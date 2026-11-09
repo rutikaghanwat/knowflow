@@ -1,0 +1,47 @@
+import React, { useEffect, useRef, useState } from 'react';
+
+export const OrganicBlob: React.FC = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      className="absolute inset-0 overflow-hidden pointer-events-none -z-10"
+      aria-hidden="true"
+    >
+      <div
+        className={`absolute -top-32 left-1/2 -translate-x-1/2 w-[720px] h-[520px] sm:w-[980px] sm:h-[640px] rounded-full blur-3xl opacity-35 bg-gradient-to-tr from-[#218653]/25 via-[#2F6B5D]/20 to-[#142640]/15 ${
+          isVisible ? 'animate-blob-slow' : ''
+        }`}
+        style={{
+          filter: 'blur(75px)',
+          willChange: 'transform',
+        }}
+      />
+      <div
+        className={`absolute top-48 -left-20 w-[420px] h-[420px] rounded-full blur-3xl opacity-20 bg-gradient-to-br from-[#28A766]/20 to-[#E8F2ED]/40 ${
+          isVisible ? 'animate-pulse-subtle' : ''
+        }`}
+        style={{
+          filter: 'blur(65px)',
+        }}
+      />
+    </div>
+  );
+};
