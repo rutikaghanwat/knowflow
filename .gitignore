@@ -1,0 +1,65 @@
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# Node dependencies
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Build files
+dist/
+build/
+coverage/
+.next/
+.vite/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Private uploaded and processed data
+storage/uploads/*
+!storage/uploads/.gitkeep
+
+storage/processed/*
+!storage/processed/.gitkeep
+
+storage/temp/*
+!storage/temp/.gitkeep
+
+# Database files and backups
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+*.backup
+
+# Logs
+*.log
+logs/
+
+# Operating system
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Docker local overrides
+docker-compose.override.yml

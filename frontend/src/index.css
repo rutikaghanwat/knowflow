@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --kf-plum: #32164C;
+  --kf-plum-dark: #241036;
+  --kf-purple: #704B91;
+  --kf-lavender: #F2EDF8;
+  --kf-bg: #FAF8FC;
+  --kf-border: #E8E0EF;
+  --kf-text: #252B33;
+  --kf-muted: #697586;
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--kf-bg); color: var(--kf-text);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased; overflow-x: hidden;
+  }
+  h1,h2,h3,h4,h5,h6 { color: var(--kf-plum); letter-spacing: -.025em; }
+  button,input,select,textarea { font: inherit; }
+  button,a { -webkit-tap-highlight-color: transparent; }
+}
+
+/* Shared application surfaces: an editorial, restrained plum design system. */
+.rounded-card,.rounded-control { border-radius: 12px; }
+.shadow-resting,.shadow-subtle { box-shadow: 0 1px 2px rgba(36,16,54,.035), 0 8px 28px rgba(36,16,54,.035); }
+.shadow-dropdown,.shadow-modal { box-shadow: 0 18px 55px rgba(36,16,54,.14); }
+input,select,textarea { accent-color: var(--kf-purple); }
+input:focus,select:focus,textarea:focus { outline: none; border-color: var(--kf-purple) !important; box-shadow: 0 0 0 3px rgba(112,75,145,.12); }
+button { transition: background-color .18s ease, color .18s ease, border-color .18s ease, transform .18s ease, box-shadow .18s ease; }
+button:active { transform: translateY(1px); }
+
+/* Common page rhythm and responsive data tables. */
+main { min-width: 0; }
+main table { border-collapse: separate; border-spacing: 0; }
+main th { font-size: 10px; letter-spacing: .08em; }
+main td,main th { border-color: var(--kf-border); }
+main section,main article { min-width: 0; }
+
+/* Premium page entrance; reduced-motion users receive a static layout. */
+@keyframes kf-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+main > div { animation: kf-rise .35s ease both; }
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #D7CCDF; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #BDA4D2; }
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible { outline: 2px solid var(--kf-purple); outline-offset: 2px; }
